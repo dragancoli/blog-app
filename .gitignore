@@ -1,0 +1,63 @@
+# General
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+dist/
+build/
+
+# React Native / Android
+android/app/build/
+android/.gradle/
+android/.idea/
+android/local.properties
+android/app/release/
+*.keystore
+*.jks
+
+# React Native / iOS
+ios/Pods/
+ios/build/
+*.xcworkspace
+*.xcuserdatad/*
+!default.xcuserdatad
+DerivedData/
+
+# Metro / bundler / caches
+.expo/
+.expo-shared/
+.expo/web-build/
+*.packager
+*.iml
+.cache/
+tmp/
+temp/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Env variables
+.env
+.env.local
+.env.production
+.env.development
+.env.test
+
+# Coverage / testing
+coverage/
+
+# VS Code
+.vscode/
+
+# Misc
+*.swp
+*.lock
