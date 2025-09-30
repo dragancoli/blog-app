@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/authRoutes'); // Uvozimo rute
 const postRoutes = require('./routes/postRoutes'); // Uvozimo rute
+const commentRoutes = require('./routes/commentRoutes'); // Uvozimo rute
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,6 +16,7 @@ app.use(express.json()); // Omogućava čitanje JSON podataka iz tela zahteva
 // Definisanje osnovne rute za autentifikaciju
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api', commentRoutes); // Dodajemo rute za komentare
 
 app.listen(PORT, () => {
   console.log(`Server sluša na portu ${PORT}`);

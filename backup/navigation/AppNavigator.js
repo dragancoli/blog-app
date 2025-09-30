@@ -1,51 +1,61 @@
 // navigation/AppNavigator.js
 import React, { useContext } from 'react';
-import { View, ActivityIndicator,  StyleSheet, Text  } from 'react-native';
+import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthContext } from '../context/AuthContext';
-import { Button } from 'react-native-paper';
+import { useTheme, IconButton, Text } from 'react-native-paper';
 
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import HomeScreen from '../screens/HomeScreen';
 import PostDetailScreen from '../screens/PostDetailScreen';
 import CreatePostScreen from '../screens/CreatePostScreen';
+import EditPostScreen from '../screens/EditPostScreen'; 
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   const { isLoading, userToken } = useContext(AuthContext);
+  const theme = useTheme();
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
+      <View style={styles.loaderWrap}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
   return (
-    <Stack.Navigator screenOptions={{ headerStyle: { backgroundColor: '#735DA5' } }}>
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: theme.colors.primary },
+        headerTitleStyle: { color: theme.colors.onPrimary, fontWeight: '700' },
+        headerTintColor: theme.colors.onPrimary,
+      }}
+    >
       {userToken ? (
-        // Ekrani dostupni NAKON prijave
         <>
-          <Stack.Screen name="Home" component={HomeScreen} options={({ navigation }) => ({
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{
               title: 'Blogovi',
-              headerRight: () => (
-                <Button
-                  style={styles.button}
-                  title="Novi post"
-                  onPress={() => navigation.navigate('CreatePost')}
-                >
-                  <Text style={styles.buttonText}> Novi post </Text>
-                </Button>
-              ),
-            })} />
-          <Stack.Screen name="PostDetail" component={PostDetailScreen} options={{ title: 'Detalji Posta' }}/> 
-          <Stack.Screen name="CreatePost" component={CreatePostScreen} options={{ title: 'Kreiraj Post' }}/>
+            }}
+          />
+          <Stack.Screen
+            name="PostDetail"
+            component={PostDetailScreen}
+            options={{ title: 'Detalji posta' }}
+          />
+          <Stack.Screen
+            name="CreatePost"
+            component={CreatePostScreen}
+            options={{ title: 'Novi post' }}
+          />
+          <Stack.Screen name="EditPost" component={EditPostScreen} options={{ title: 'Uredi Post' }} />
         </>
       ) : (
-        // Ekrani dostupni PRE prijave
         <>
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
@@ -56,24 +66,7 @@ const AppNavigator = () => {
 };
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#735DA5',
-  },
-  buttonText: {
-    color: '#735DA5',
-    fontWeight: 'bold',
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  button: {
-    height: 50,
-    justifyContent: 'center',
-    backgroundColor: '#D3C5E5',
-    marginRight: 10,
-  },
+  loaderWrap: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 });
 
 export default AppNavigator;

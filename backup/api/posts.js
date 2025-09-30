@@ -46,6 +46,22 @@ const getPostById = async (postId) => {
   }
 };
 
+const updatePost = async (postId, title, content) => {
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+    if (!token) throw new Error('Nema tokena za autorizaciju.');
+    const response = await axios.put(
+      `${API_URL}/${postId}`,
+      { title, content },
+      { headers: { 'x-auth-token': token } }
+    );
+    return response.data;
+  } catch (error) {
+    console.error(`Greška pri ažuriranju posta ${postId}:`, error.response?.data || error.message);
+    throw error;
+  }
+};
+
 const deletePost = async (postId) => {
   try {
     const token = await AsyncStorage.getItem('userToken');
@@ -61,4 +77,4 @@ const deletePost = async (postId) => {
   }
 };
 
-export { getAllPosts, createPost , getPostById, deletePost };
+export { getAllPosts, createPost , getPostById, deletePost, updatePost };

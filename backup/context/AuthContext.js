@@ -1,5 +1,5 @@
 // context/AuthContext.js
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { login as apiLogin, register as apiRegister } from '../api/auth';
 
@@ -26,20 +26,20 @@ export const AuthProvider = ({ children }) => {
     await AsyncStorage.removeItem('userToken');
   };
 
-  const isLoggedIn = async () => {
+  const bootstrap = useCallback(async () => {
     try {
-      setIsLoading(true);
       const token = await AsyncStorage.getItem('userToken');
       setUserToken(token);
-      setIsLoading(false);
     } catch (e) {
-      console.log(`isLoggedIn error ${e}`);
+      console.log('Auth bootstrap error', e);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    isLoggedIn();
-  }, []);
+    bootstrap();
+  }, [bootstrap]);
 
   return (
     <AuthContext.Provider value={{ login, logout, register, userToken, isLoading }}>

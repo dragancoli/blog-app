@@ -1,121 +1,155 @@
 // screens/HomeScreen.js
-import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { Button } from 'react-native-paper';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
+import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import { Text, ActivityIndicator, Searchbar, FAB, Snackbar, useTheme, IconButton } from 'react-native-paper';
 import { AuthContext } from '../context/AuthContext';
 import { getAllPosts } from '../api/posts';
 import { useIsFocused } from '@react-navigation/native';
+import PostCard from '../components/PostCard';
+import EmptyState from '../components/EmptyState';
+import ErrorState from '../components/ErrorState';
 
 const HomeScreen = ({ navigation }) => {
   const { logout } = useContext(AuthContext);
-  const [posts, setPosts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const theme = useTheme();
   const isFocused = useIsFocused();
 
-  // useEffect se izvršava čim se komponenta učita
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        setIsLoading(true);
-        const data = await getAllPosts();
-        setPosts(data);
-        setError(null);
-      } catch (err) {
-        setError('Nije moguće učitati postove.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const [posts, setPosts] = useState([]);
+  const [filtered, setFiltered] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
+  const [query, setQuery] = useState('');
+  const [snackbar, setSnackbar] = useState({ visible: false, msg: '' });
 
-    if (isFocused) { 
-      fetchPosts();
+  const loadPosts = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) setIsLoading(true);
+    try {
+      const data = await getAllPosts();
+      setPosts(data);
+      setError('');
+    } catch (e) {
+      setError('Nije moguće učitati postove.');
+    } finally {
+      setIsLoading(false);
+      setRefreshing(false);
     }
-  }, [isFocused]); 
+  }, []);
 
-  // Prikazujemo indikator učitavanja dok se podaci ne dobiju
-  if (isLoading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
+  useEffect(() => {
+    if (isFocused) {
+      loadPosts();
+    }
+  }, [isFocused, loadPosts]);
 
-  // Prikazujemo poruku o grešci ako je došlo do problema
-  if (error) {
-    return (
-      <View style={styles.centered}>
-        <Text>{error}</Text>
-        <Button title="Pokušaj ponovo" onPress={() => { /* logika za ponovno učitavanje */ }} />
-      </View>
-    );
-  }
-  
-  // Glavni prikaz sa listom postova
+  useEffect(() => {
+    if (!query.trim()) {
+      setFiltered(posts);
+    } else {
+      const lower = query.toLowerCase();
+      setFiltered(
+        posts.filter(
+          p =>
+            p.title.toLowerCase().includes(lower) ||
+            (p.author && p.author.toLowerCase().includes(lower))
+        )
+      );
+    }
+  }, [query, posts]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadPosts(true);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+  };
+
+  const renderItem = ({ item }) => (
+    <PostCard
+      title={item.title}
+      author={item.author}
+      date={new Date(item.created_at).toLocaleDateString('sr-RS')}
+      onPress={() => navigation.navigate('PostDetail', { postId: item.id })}
+    />
+  );
+
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={posts}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={styles.postContainer} 
-            onPress={() => navigation.navigate('PostDetail', { postId: item.id })}
-          >
-            <Text style={styles.postTitle}>{item.title}</Text>
-            <Text style={styles.postAuthor}>Autor: {item.author}</Text>
-          </TouchableOpacity>
-        )}
-        ListEmptyComponent={<Text style={styles.centered}>Trenutno nema postova.</Text>}
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <View style={styles.topRow}>
+        <Searchbar
+          placeholder="Pretraži postove..."
+          value={query}
+          onChangeText={setQuery}
+          style={styles.search}
+          elevation={0}
+        />
+        <IconButton
+          icon="logout"
+            accessibilityLabel="Odjava"
+          onPress={handleLogout}
+          mode="contained-tonal"
+          style={styles.logoutBtn}
+        />
+      </View>
+
+      {isLoading ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" />
+          <Text style={{ marginTop: 16, color: theme.colors.outline }}>Učitavanje postova...</Text>
+        </View>
+      ) : error ? (
+        <ErrorState message={error} onRetry={() => loadPosts()} />
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          title="Nema rezultata"
+          message={query ? 'Nema postova koji odgovaraju pretrazi.' : 'Još uvek nema postova.'}
+          actionLabel={!query ? 'Napravi prvi' : undefined}
+          onAction={!query ? () => navigation.navigate('CreatePost') : undefined}
+        />
+      ) : (
+        <FlatList
+          data={filtered}
+          keyExtractor={item => item.id.toString()}
+          renderItem={renderItem}
+          contentContainerStyle={styles.listContent}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        />
+      )}
+
+      <FAB
+        icon="plus"
+        style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+        color={theme.colors.onPrimary}
+        onPress={() => navigation.navigate('CreatePost')}
+        accessibilityLabel="Kreiraj novi post"
       />
-      <Button style={styles.button} title="Odjavi se" onPress={logout} >
-        <Text style={styles.logout}>Odjavi se</Text>
-      </Button>
+
+      <Snackbar
+        visible={snackbar.visible}
+        onDismiss={() => setSnackbar(s => ({ ...s, visible: false }))}
+        duration={2500}
+      >
+        {snackbar.msg}
+      </Snackbar>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 10,
-    backgroundColor: '#735DA5',
+  container: { flex: 1, paddingHorizontal: 16, paddingTop: 8 },
+  topRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  search: { flex: 1, borderRadius: 14 },
+  logoutBtn: { margin: 0 },
+  listContent: { paddingVertical: 8 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 26,
+    elevation: 6,
   },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  postContainer: {
-    backgroundColor: '#D3C5E5',
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  postTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  postAuthor: {
-    fontSize: 14,
-    color: 'gray',
-    marginTop: 5,
-    fontWeight: 'bold'
-  },
-  button: {
-    height: 50,
-    justifyContent: 'center',
-    backgroundColor: '#D3C5E5',
-  },
-  logout: {
-    color: '#735DA5',
-    fontWeight: 'bold',
-    fontSize: 16,
-    textAlign: 'center',
-  }
 });
 
 export default HomeScreen;
