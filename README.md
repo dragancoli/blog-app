@@ -20,6 +20,7 @@ Full‑stack mobilna i web aplikacija za blogovanje: korisnici se registruju, pr
   - [Autentifikacija](#autentifikacija)
   - [Postovi](#postovi)
   - [Komentari](#komentari)
+  - [Korisnici](#korisnici)
 - [JWT detalji](#jwt-detalji)
 - [Teme (Light / Dark)](#teme-light--dark)
 - [Validacije & Bezbednost](#validacije--bezbednost)
@@ -46,7 +47,8 @@ Full‑stack mobilna i web aplikacija za blogovanje: korisnici se registruju, pr
 - Detaljan prikaz posta
 - Sekcija komentara (dodavanje, reply, izmena, brisanje)
 - Dinamička tema (light / dark) prema sistemskim podešavanjima
-- Pretraga postova 
+- Pretraga postova
+- Uredjivanje profila
 
 ---
 
@@ -74,12 +76,14 @@ root/
         authController.js
         postController.js
         commentController.js
+        userController.js
       middleware/
         authMiddleware.js
       routes/
         authRoutes.js
         postRoutes.js
         commentRoutes.js
+        userRoutes.js
       index.js
     package.json
     .env (lokalno – ne commitovati)
@@ -88,6 +92,7 @@ root/
       auth.js
       posts.js
       comments.js
+      users.js
     screens/
       LoginScreen.js
       RegisterScreen.js
@@ -95,8 +100,13 @@ root/
       CreatePostScreen.js
       EditPostScreen.js
       PostDetailScreen.js
+      ProfileScreen.js
     components/
-      CommentsSection.js (ako se koristi)
+      CommentsSection.js
+      ProfileHeader.js
+      EmptyState.js
+      ErrorState.js
+      PostCard.js
     context/
       AuthContext.js
     navigation/
@@ -235,6 +245,15 @@ Tree izlaz vraća polje `depth` (ako je implementirano u kontroleru rekurzivnim 
 
 ---
 
+### Korisnici
+
+| Metod | Ruta | Autorizacija | Opis |
+|-------|------|--------------|------|
+| GET | /api/users/me | Da | Moj profil |
+| PUT | /api/users/me | Da | Izmena |
+| GET | /api/users/:id | Da | Profil drugog korisnika |
+| GET | /api/users/:userId/posts/:id | Ne | Postovi drugog korisnika |
+
 ## JWT detalji
 
 Payload tokena:
@@ -288,7 +307,6 @@ Dodatno moguće (trenutno nije implementirano):
 - Bookmark (“Sačuvaj”)
 - Tagovi + filter
 - Paginacija / infinite scroll (postovi i komentari)
-- Profili korisnika (avatar, bio)
 - Notifikacije (npr. novi komentar)
 - Markdown / upload slika
 - Admin panel (moderacija)
