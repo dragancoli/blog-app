@@ -116,14 +116,11 @@ const PostDetailScreen = ({ route, navigation }) => {
         </Text>
         <TouchableOpacity
           onPress={() => {
-            console.log('author id:', post.author_id, 'current user id:', currentUserId);
             if(post.author_id === currentUserId) {
               navigation.navigate('Profile');
-              console.log('navigating to MY profile');
             }
             else {
               navigation.navigate('Profile', { userId: post.author_id });
-              console.log('navigating to other profile');
             }
           }}
         >

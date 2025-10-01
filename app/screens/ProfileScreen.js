@@ -1,15 +1,29 @@
-// screens/ProfileScreen.js
-import React, { useEffect, useState, useContext, useCallback } from 'react';
+import React, { useEffect, useState, useContext, useCallback, useMemo } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl, Platform } from 'react-native';
-import { Text, useTheme, ActivityIndicator, Avatar, Button, TextInput, Divider } from 'react-native-paper';
+import { Text, useTheme, ActivityIndicator, Button } from 'react-native-paper';
 import { AuthContext } from '../context/AuthContext';
-import { getMe, updateMe, getUserPosts , getUserProfile} from '../api/users';
+import { getMe, updateMe, getUserPosts, getUserProfile } from '../api/users';
 import { jwtDecode } from 'jwt-decode';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import ProfileHeader from '../components/ProfileHeader';
+import { TouchableOpacity } from 'react-native'; // običan RN, ne gesture-handler
 
 const ProfileScreen = ({ route, navigation }) => {
   const theme = useTheme();
   const { logout, userToken } = useContext(AuthContext);
+
+  // Dekoduj token jednom
+  const decoded = useMemo(() => {
+    try {
+      return userToken ? jwtDecode(userToken) : null;
+    } catch {
+      return null;
+    }
+  }, [userToken]);
+
+  const routeUserId = route?.params?.userId;
+  const viewedUserId = routeUserId || decoded?.id || null;
+  const isOwn = decoded && viewedUserId === decoded.id;
+
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -20,31 +34,43 @@ const ProfileScreen = ({ route, navigation }) => {
   const [submitting, setSubmitting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Ako prosledimo userId u route.params -> prikaz tuđeg profila
-  const viewedUserId = route?.params?.userId || (userToken ? jwtDecode(userToken).id : null);
-  const isOwn = userToken && viewedUserId === jwtDecode(userToken).id;
-
   const loadProfile = useCallback(async () => {
+    if (!viewedUserId) {
+      setLoadingProfile(false);
+      return;
+    }
     try {
       setLoadingProfile(true);
+      // Javne info
+      const pub = await getUserProfile(viewedUserId);
+      setProfile(prev => ({ ...prev, ...pub }));
+      setBioDraft(pub.bio || '');
+      setAvatarDraft(pub.avatar_url || '');
+
+      // Ako je moj profil – dopuni privatnim
       if (isOwn) {
-        const me = await getMe();
-        setProfile(me);
-        setBioDraft(me.bio || '');
-        setAvatarDraft(me.avatar_url || '');
-      } else {
-        // javni prikaz
-        const data = await getUserProfile(viewedUserId);
-        setProfile(data);
+        try {
+          const me = await getMe();
+            setProfile(prev => ({ ...prev, email: me.email })); // nemoj pregaziti ostalo
+        } catch (e) {
+          if (e.response?.status === 401) {
+            logout();
+          }
+        }
       }
     } catch (e) {
       console.log('Profile load error', e);
+      setProfile(null);
     } finally {
       setLoadingProfile(false);
     }
-  }, [isOwn, viewedUserId]);
+  }, [viewedUserId, isOwn, logout]);
 
   const loadPosts = useCallback(async () => {
+    if (!viewedUserId) {
+      setLoadingPosts(false);
+      return;
+    }
     try {
       setLoadingPosts(true);
       const data = await getUserPosts(viewedUserId);
@@ -90,7 +116,13 @@ const ProfileScreen = ({ route, navigation }) => {
 
   const renderPost = ({ item }) => (
     <TouchableOpacity
-      style={[styles.postItem, { backgroundColor: theme.colors.surface, borderColor: theme.colors.surfaceVariant }]}
+      style={[
+        styles.postItem,
+        {
+          backgroundColor: theme.colors.surface,
+          borderColor: theme.colors.surfaceVariant
+        }
+      ]}
       onPress={() => navigation.navigate('PostDetail', { postId: item.id })}
     >
       <Text style={{ fontWeight: '600', color: theme.colors.onSurface }} numberOfLines={2}>
@@ -101,126 +133,6 @@ const ProfileScreen = ({ route, navigation }) => {
       </Text>
     </TouchableOpacity>
   );
-
-  const listHeader = () => {
-    if (loadingProfile) {
-      return (
-        <View style={styles.center}>
-          <ActivityIndicator />
-          <Text style={{ marginTop: 10, color: theme.colors.outline }}>Učitavanje profila...</Text>
-        </View>
-      );
-    }
-
-    if (!profile) {
-      return (
-        <View style={styles.center}>
-          <Text style={{ color: theme.colors.error }}>Profil nije pronađen.</Text>
-        </View>
-      );
-    }
-
-    const avatarUri = profile.avatar_url;
-
-    return (
-      <View style={styles.headerBlock}>
-        <View style={styles.row}>
-          {avatarUri ? (
-            <Avatar.Image size={74} source={{ uri: avatarUri }} />
-          ) : (
-            <Avatar.Text
-              size={74}
-              label={profile.username ? profile.username.slice(0, 2).toUpperCase() : '?'}
-            />
-          )}
-          <View style={{ marginLeft: 16, flex: 1 }}>
-            <Text variant="titleMedium" style={{ fontWeight: '700' }}>
-              {profile.username}
-            </Text>
-            {isOwn && (
-              <Text style={{ fontSize: 12, color: theme.colors.outline }}>
-                {profile.email}
-              </Text>
-            )}
-            <Text style={{ fontSize: 12, marginTop: 4, color: theme.colors.outline }}>
-              Registrovan: {new Date(profile.created_at).toLocaleDateString('sr-RS')}
-            </Text>
-          </View>
-        </View>
-
-        {/* Bio / Edit sekcija */}
-        <View style={{ marginTop: 18 }}>
-          {!editing ? (
-            <>
-              <Text style={{ color: theme.colors.onBackground }}>
-                {profile.bio ? profile.bio : isOwn ? 'Nema biografije. Dodaj je.' : 'Nema biografije.'}
-              </Text>
-              {isOwn && (
-                <Button
-                  mode="text"
-                  style={{ marginTop: 6 }}
-                  onPress={() => setEditing(true)}
-                >
-                  Uredi profil
-                </Button>
-              )}
-            </>
-          ) : (
-            <View style={{ marginTop: 4 }}>
-              <TextInput
-                mode="outlined"
-                label="Bio"
-                value={bioDraft}
-                onChangeText={setBioDraft}
-                multiline
-                style={{ marginBottom: 8 }}
-              />
-              <TextInput
-                mode="outlined"
-                label="Avatar URL"
-                value={avatarDraft}
-                onChangeText={setAvatarDraft}
-                style={{ marginBottom: 8 }}
-              />
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                <Button
-                  mode="contained"
-                  onPress={handleSave}
-                  disabled={submitting}
-                >
-                  {submitting ? 'Čuvam...' : 'Sačuvaj'}
-                </Button>
-                <Button
-                  mode="outlined"
-                  onPress={() => {
-                    setEditing(false);
-                    setBioDraft(profile.bio || '');
-                    setAvatarDraft(profile.avatar_url || '');
-                  }}
-                >
-                  Otkaži
-                </Button>
-              </View>
-            </View>
-          )}
-        </View>
-
-        <Divider style={{ marginVertical: 22 }} />
-        <Text variant="titleMedium" style={{ fontWeight: '700', marginBottom: 8 }}>
-            Postovi ({posts.length})
-        </Text>
-        {isOwn && (
-          <Button
-            mode="contained-tonal"
-            style={{ alignSelf: 'flex-start', marginBottom: 12 }}
-            onPress={() => navigation.navigate('CreatePost')}
-          >
-            Novi post
-          </Button>
-        )}
-      </View>
-    );
-  };
 
   const listFooter = () => (
     <View style={{ paddingBottom: 40 }}>
@@ -244,9 +156,27 @@ const ProfileScreen = ({ route, navigation }) => {
         data={loadingPosts ? [] : posts}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderPost}
-        ListHeaderComponent={listHeader}
+        ListHeaderComponent={
+          <View style={{ padding: 18 }}>
+            <ProfileHeader
+              loadingProfile={loadingProfile}
+              profile={profile}
+              isOwn={isOwn}
+              editing={editing}
+              setEditing={setEditing}
+              bioDraft={bioDraft}
+              setBioDraft={setBioDraft}
+              avatarDraft={avatarDraft}
+              setAvatarDraft={setAvatarDraft}
+              handleSave={handleSave}
+              submitting={submitting}
+              postsLength={posts.length}
+              onCreatePost={() => navigation.navigate('CreatePost')}
+            />
+          </View>
+        }
         ListFooterComponent={listFooter}
-        contentContainerStyle={{ padding: 18 }}
+        contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 30 }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -257,6 +187,7 @@ const ProfileScreen = ({ route, navigation }) => {
             </Text>
           )
         }
+        keyboardShouldPersistTaps="handled"
       />
       {loadingPosts && (
         <View style={styles.loadingOverlay}>
@@ -269,18 +200,19 @@ const ProfileScreen = ({ route, navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  center: { alignItems: 'center', justifyContent: 'center', paddingVertical: 20 },
-  headerBlock: {},
-  row: { flexDirection: 'row', alignItems: 'center' },
   postItem: {
     padding: 14,
     borderRadius: 14,
     borderWidth: 1,
-    marginBottom: 12,
+    marginBottom: 12
   },
   loadingOverlay: {
-    position: 'absolute', left: 0, right: 0, bottom: 0,
-    padding: 8, alignItems: 'center'
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    padding: 8,
+    alignItems: 'center'
   }
 });
 

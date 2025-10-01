@@ -41,7 +41,7 @@ const AppNavigator = () => {
             name="Home"
             component={HomeScreen}
             options={({ navigation, route }) => ({
-              title: 'Blogovi',
+              title: 'BlogApp',
               headerRight: () => (
                 <View style={{ flexDirection: 'row' , alignItems: 'center' }}>
                   <IconButton
