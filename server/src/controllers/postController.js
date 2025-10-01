@@ -31,7 +31,13 @@ exports.getAllPosts = async (req, res) => {
 // Dobavljanje jednog posta
 exports.getPostById = async (req, res) => {
     try {
-        const post = await db.query('SELECT * FROM posts WHERE id = $1', [req.params.id]);
+        const post = await db.query(
+          `SELECT p.id, p.title, p.content, p.created_at, p.updated_at,
+            p.author_id, u.username AS author
+            FROM posts p
+            JOIN users u ON u.id = p.author_id
+            WHERE p.id = $1`,
+        [req.params.id]);
         if (post.rows.length === 0) {
             return res.status(404).json({ message: 'Post nije pronađen.' });
         }

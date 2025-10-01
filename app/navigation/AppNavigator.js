@@ -11,6 +11,7 @@ import HomeScreen from '../screens/HomeScreen';
 import PostDetailScreen from '../screens/PostDetailScreen';
 import CreatePostScreen from '../screens/CreatePostScreen';
 import EditPostScreen from '../screens/EditPostScreen'; 
+import ProfileScreen from '../screens/ProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -39,9 +40,21 @@ const AppNavigator = () => {
           <Stack.Screen
             name="Home"
             component={HomeScreen}
-            options={{
+            options={({ navigation, route }) => ({
               title: 'Blogovi',
-            }}
+              headerRight: () => (
+                <View style={{ flexDirection: 'row' , alignItems: 'center' }}>
+                  <IconButton
+                    icon="account-circle"
+                    size={20}
+                    onPress={() => navigation.navigate('Profile')}
+                    accessibilityLabel="Profil"
+                    mode="contained-tonal"
+                    style={{ marginRight: 4 }}
+                  />
+                </View>
+                )
+            })}
           />
           <Stack.Screen
             name="PostDetail"
@@ -54,6 +67,7 @@ const AppNavigator = () => {
             options={{ title: 'Novi post' }}
           />
           <Stack.Screen name="EditPost" component={EditPostScreen} options={{ title: 'Uredi Post' }} />
+          <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profil' }} />
         </>
       ) : (
         <>

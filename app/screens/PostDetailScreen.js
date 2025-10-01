@@ -7,6 +7,7 @@ import { AuthContext } from '../context/AuthContext';
 import { jwtDecode } from 'jwt-decode';
 import { Button, Text, ActivityIndicator, useTheme } from 'react-native-paper';
 import CommentsSection from '../components/CommentsSection';
+import { TouchableOpacity } from 'react-native';
 
 const PostDetailScreen = ({ route, navigation }) => {
   const { postId } = route.params;
@@ -113,9 +114,23 @@ const PostDetailScreen = ({ route, navigation }) => {
         >
           {post.title}
         </Text>
-        <Text style={{ color: theme.colors.primary, fontWeight: '600', marginBottom: 4 }}>
-          Autor: {authorName}
-        </Text>
+        <TouchableOpacity
+          onPress={() => {
+            console.log('author id:', post.author_id, 'current user id:', currentUserId);
+            if(post.author_id === currentUserId) {
+              navigation.navigate('Profile');
+              console.log('navigating to MY profile');
+            }
+            else {
+              navigation.navigate('Profile', { userId: post.author_id });
+              console.log('navigating to other profile');
+            }
+          }}
+        >
+          <Text style={{ color: theme.colors.primary, fontWeight: '600', marginBottom: 4 }}>
+            Autor: {authorName}
+          </Text>
+        </TouchableOpacity>
         <Text style={{ color: theme.colors.outline, fontSize: 12, marginBottom: 14 }}>
           Objavljeno: {new Date(post.created_at).toLocaleDateString('sr-RS')}
           {post.updated_at ? ' (ažurirano)' : ''}
