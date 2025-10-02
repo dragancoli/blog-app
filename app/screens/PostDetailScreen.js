@@ -110,7 +110,7 @@ const PostDetailScreen = ({ route, navigation }) => {
       <View style={styles.contentContainer}>
         <Text
           variant="headlineSmall"
-          style={[styles.title, { color: theme.colors.onBackground }]}
+          style={[styles.title, { color: theme.colors.onBackground, fontFamily: 'Poppins-Bold' }]}
         >
           {post.title}
         </Text>
@@ -124,7 +124,7 @@ const PostDetailScreen = ({ route, navigation }) => {
             }
           }}
         >
-          <Text style={{ color: theme.colors.primary, fontWeight: '600', marginBottom: 4 }}>
+          <Text style={{ color: theme.colors.primary, fontWeight: '600', marginBottom: 4, fontFamily: 'Poppins-SemiBold' }}>
             Autor: {authorName}
           </Text>
         </TouchableOpacity>

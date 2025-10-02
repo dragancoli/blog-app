@@ -9,6 +9,7 @@ const LoginScreen = ({ navigation }) => {
   const theme = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // kontrola prikaza lozinke
   const [submitting, setSubmitting] = useState(false);
   const [touched, setTouched] = useState(false);
   const [snackbar, setSnackbar] = useState({ visible: false, msg: '' });
@@ -35,7 +36,7 @@ const LoginScreen = ({ navigation }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.container}>
-        <Text variant="headlineMedium" style={styles.title}>Dobrodošli nazad</Text>
+        <Text variant="headlineMedium" style={styles.title}>Dobrodosli nazad</Text>
         <Text style={[styles.subtitle, { color: theme.colors.outline }]}>Prijavite se da nastavite.</Text>
 
         <TextInput
@@ -55,13 +56,23 @@ const LoginScreen = ({ navigation }) => {
 
         <TextInput
           label="Lozinka"
-          secureTextEntry
+          secureTextEntry={!showPassword}
           value={password}
           onChangeText={setPassword}
           style={styles.input}
           mode="outlined"
           error={passwordInvalid}
           onBlur={() => setTouched(true)}
+          autoCapitalize="none"
+          autoCorrect={false}
+          right={
+            <TextInput.Icon
+              icon={showPassword ? 'eye-off' : 'eye'}
+              onPress={() => setShowPassword(s => !s)}
+              forceTextInputFocus={false}
+              accessibilityLabel={showPassword ? 'Sakrij lozinku' : 'Prikaži lozinku'}
+            />
+          }
         />
         <HelperText type={passwordInvalid ? 'error' : 'info'} visible={true}>
           {passwordInvalid ? 'Najmanje 4 karaktera.' : ' '}
@@ -77,7 +88,7 @@ const LoginScreen = ({ navigation }) => {
         </Button>
 
         <View style={styles.switchRow}>
-          <Text>Nemate nalog? </Text>
+          <Text style={{ fontFamily: 'Poppins-SemiBold' }}>Nemate nalog? </Text>
           <Button mode="text" onPress={() => navigation.navigate('Register')}>
             Registrujte se
           </Button>
@@ -97,8 +108,8 @@ const LoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { flex: 1, justifyContent: 'center', padding: 22 },
-  title: { fontWeight: '700', textAlign: 'center' },
-  subtitle: { textAlign: 'center', marginBottom: 22 },
+  title: { fontWeight: '100', textAlign: 'center' , fontFamily: 'Freedom-10eM', fontSize: 38},
+  subtitle: { textAlign: 'center', marginBottom: 22, fontFamily: 'Freedom-10eM' },
   input: { marginBottom: 0 },
   button: { marginTop: 6, borderRadius: 14, paddingVertical: 6 },
   switchRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 24, alignItems: 'center' },

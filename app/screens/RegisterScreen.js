@@ -38,7 +38,7 @@ const RegisterScreen = ({ navigation }) => {
     >
       <View style={styles.container}>
         <Text variant="headlineMedium" style={styles.title}>Napravi nalog</Text>
-        <Text style={[styles.subtitle, { color: theme.colors.outline }]}>Pridruži se zajednici.</Text>
+        <Text style={[styles.subtitle, { color: theme.colors.outline }]}>Pridruzi se zajednici.</Text>
 
         <TextInput
           label="Korisničko ime"
@@ -92,7 +92,7 @@ const RegisterScreen = ({ navigation }) => {
         </Button>
 
         <View style={styles.switchRow}>
-          <Text>Već imate nalog? </Text>
+          <Text style={{ fontFamily: 'Poppins-SemiBold' }}>Već imate nalog? </Text>
           <Button mode="text" onPress={() => navigation.navigate('Login')}>
             Prijavi se
           </Button>
@@ -112,11 +112,11 @@ const RegisterScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { flex: 1, justifyContent: 'center', padding: 22 },
-  title: { fontWeight: '700', textAlign: 'center' },
-  subtitle: { textAlign: 'center', marginBottom: 24 },
+  title: { fontWeight: '100', textAlign: 'center', fontFamily: 'Freedom-10eM', fontSize: 38 },
+  subtitle: { textAlign: 'center', marginBottom: 24, fontFamily: 'Freedom-10eM', fontSize: 16 },
   input: { marginBottom: 0 },
   button: { marginTop: 8, borderRadius: 14, paddingVertical: 6 },
-  switchRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 24, alignItems: 'center' },
+  switchRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 24, alignItems: 'center'},
 });
 
 export default RegisterScreen;

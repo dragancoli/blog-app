@@ -181,7 +181,7 @@ const CommentsSection = ({ postId, userToken }) => {
   return (
     <View style={styles.wrapper}>
       <Divider style={{ marginVertical: 22 }} />
-      <Text variant="titleMedium" style={{ fontWeight: '700', marginBottom: 10, marginLeft: 10 }}>
+      <Text variant="titleMedium" style={{ fontWeight: '300', marginBottom: 10, marginLeft: 10, fontFamily: 'BlackOpsOne-Regular' }}>
         Komentari
       </Text>
 

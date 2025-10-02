@@ -101,7 +101,7 @@ const CreatePostScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { flex: 1, padding: 18 },
-  heading: { fontWeight: '700', marginBottom: 12 },
+  heading: { fontWeight: '700', marginBottom: 12, fontFamily: 'Poppins-Bold' },
   input: { marginBottom: 4 },
   textArea: { minHeight: 160 },
   helperRow: { marginBottom: 4 },

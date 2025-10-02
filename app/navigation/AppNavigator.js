@@ -31,7 +31,7 @@ const AppNavigator = () => {
     <Stack.Navigator
       screenOptions={{
         headerStyle: { backgroundColor: theme.colors.primary },
-        headerTitleStyle: { color: theme.colors.onPrimary, fontWeight: '700' },
+        headerTitleStyle: { color: theme.colors.onPrimary, fontWeight: '700' , fontFamily: 'Poppins-Bold'},
         headerTintColor: theme.colors.onPrimary,
       }}
     >
