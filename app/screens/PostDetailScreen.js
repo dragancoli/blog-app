@@ -5,9 +5,8 @@ import { useIsFocused } from '@react-navigation/native';
 import { getPostById, deletePost } from '../api/posts';
 import { AuthContext } from '../context/AuthContext';
 import { jwtDecode } from 'jwt-decode';
-import { Button, Text, ActivityIndicator, useTheme } from 'react-native-paper';
+import { Button, Text, ActivityIndicator, useTheme, Card, Avatar, Divider } from 'react-native-paper';
 import CommentsSection from '../components/CommentsSection';
-import { TouchableOpacity } from 'react-native';
 
 const PostDetailScreen = ({ route, navigation }) => {
   const { postId } = route.params;
@@ -35,19 +34,14 @@ const PostDetailScreen = ({ route, navigation }) => {
   }, [postId]);
 
   useEffect(() => {
-    fetchPost();
-  }, [fetchPost]);
-
-  useEffect(() => {
     if (isFocused) fetchPost();
   }, [isFocused, fetchPost]);
 
+  // ISPRAVKA: Definicije funkcija su dodate ovde
   const confirmDelete = () => {
     const doDelete = async () => {
       try {
         await deletePost(postId);
-        const alertFn = Platform.OS === 'web' ? window.alert : Alert.alert;
-        alertFn('Uspeh', 'Post je uspešno obrisan.');
         navigation.goBack();
       } catch (e) {
         const alertFn = Platform.OS === 'web' ? window.alert : Alert.alert;
@@ -75,24 +69,23 @@ const PostDetailScreen = ({ route, navigation }) => {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerStyle: { backgroundColor: theme.colors.primary },
-      headerTintColor: theme.colors.onPrimary,
-      headerTitleStyle: { color: theme.colors.onPrimary },
+      headerTitle: '',
       headerRight: () =>
         post && currentUserId === post.author_id ? (
-          <View style={{ flexDirection: 'row' }}>
+          <View style={{ flexDirection: 'row', marginRight: 8 }}>
             <Button
-              mode="contained-tonal"
-              onPress={goEdit}
-              style={{ marginRight: 8 }}
+              mode="text"
+              onPress={goEdit} // Sada je ova funkcija definisana
+              textColor={theme.colors.onPrimary}
+              icon="pencil"
             >
               Uredi
             </Button>
             <Button
-              mode="contained"
-              onPress={confirmDelete}
-              buttonColor={theme.colors.error}
+              mode="text"
+              onPress={confirmDelete} // I ova funkcija je definisana
               textColor={theme.colors.onPrimary}
+              icon="delete"
             >
               Obriši
             </Button>
@@ -105,44 +98,40 @@ const PostDetailScreen = ({ route, navigation }) => {
     if (errMsg || !post) return null;
 
     const authorName = post.author || 'Nepoznato';
+    const authorInitials = authorName.slice(0, 2).toUpperCase();
 
     return (
-      <View style={styles.contentContainer}>
-        <Text
-          variant="headlineSmall"
-          style={[styles.title, { color: theme.colors.onBackground, fontFamily: 'Poppins-Bold' }]}
-        >
-          {post.title}
-        </Text>
-        <TouchableOpacity
-          onPress={() => {
-            if(post.author_id === currentUserId) {
-              navigation.navigate('Profile');
-            }
-            else {
-              navigation.navigate('Profile', { userId: post.author_id });
-            }
-          }}
-        >
-          <Text style={{ color: theme.colors.primary, fontWeight: '600', marginBottom: 4, fontFamily: 'Poppins-SemiBold' }}>
-            Autor: {authorName}
+      <View>
+        <Card.Cover source={{ uri: `https://picsum.photos/700?random=${post.id}` }} style={styles.coverImage} />
+        <View style={styles.contentContainer}>
+          <Text
+            variant="headlineMedium"
+            style={[styles.title, { color: theme.colors.onBackground, fontFamily: 'Poppins-Bold' }]}
+          >
+            {post.title}
           </Text>
-        </TouchableOpacity>
-        <Text style={{ color: theme.colors.outline, fontSize: 12, marginBottom: 14 }}>
-          Objavljeno: {new Date(post.created_at).toLocaleDateString('sr-RS')}
-          {post.updated_at ? ' (ažurirano)' : ''}
-        </Text>
-        <View
-          style={{
-            height: 1,
-            backgroundColor: theme.colors.surfaceVariant,
-            marginBottom: 18,
-            borderRadius: 1
-          }}
-        />
-        <Text style={{ color: theme.colors.onBackground, fontSize: 16, lineHeight: 24 }}>
-          {post.content}
-        </Text>
+          <View style={styles.authorRow}>
+            <Avatar.Text size={42} label={authorInitials} style={{ backgroundColor: theme.colors.primaryContainer }} color={theme.colors.onPrimaryContainer}/>
+            <View style={styles.authorInfo}>
+              <Text
+                style={{ color: theme.colors.primary, fontFamily: 'Poppins-SemiBold', fontSize: 16 }}
+                onPress={() => {
+                  if (post.author_id === currentUserId) navigation.navigate('Profile');
+                  else navigation.navigate('Profile', { userId: post.author_id });
+                }}
+              >
+                {authorName}
+              </Text>
+              <Text style={{ color: theme.colors.outline, fontSize: 12 }}>
+                Objavljeno: {new Date(post.created_at).toLocaleDateString('sr-RS')}
+              </Text>
+            </View>
+          </View>
+          <Divider style={styles.divider} />
+          <Text style={[styles.contentText, { color: theme.colors.onBackground }]}>
+            {post.content}
+          </Text>
+        </View>
       </View>
     );
   };
@@ -150,7 +139,7 @@ const PostDetailScreen = ({ route, navigation }) => {
   const renderComments = () => {
     return <CommentsSection postId={postId} userToken={userToken} />;
   };
-
+  
   if (loading) {
     return (
       <View style={[styles.centered, { backgroundColor: theme.colors.background }]}>
@@ -170,7 +159,7 @@ const PostDetailScreen = ({ route, navigation }) => {
 
   return (
     <FlatList
-      data={[1]} // Jedan item - celu stranu
+      data={[1]}
       renderItem={null}
       ListHeaderComponent={renderHeader}
       ListFooterComponent={renderComments}
@@ -185,8 +174,31 @@ const PostDetailScreen = ({ route, navigation }) => {
 
 const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  contentContainer: { padding: 18 },
-  title: { fontWeight: '700', marginBottom: 6 }
+  coverImage: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  contentContainer: { padding: 20 },
+  title: {
+    marginBottom: 16,
+    lineHeight: 36,
+  },
+  authorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  authorInfo: {
+    marginLeft: 12,
+  },
+  divider: {
+    marginVertical: 20,
+  },
+  contentText: {
+    fontSize: 16,
+    lineHeight: 28,
+    fontFamily: 'Poppins-Regular',
+  }
 });
 
 export default PostDetailScreen;

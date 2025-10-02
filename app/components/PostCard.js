@@ -1,69 +1,56 @@
 // components/PostCard.js
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Text, useTheme, Icon } from 'react-native-paper';
+import { StyleSheet } from 'react-native';
+import { useTheme, Card, Text, Avatar } from 'react-native-paper';
 
-const PostCard = ({ title, author, date, onPress }) => {
+const PostCard = ({ title, author, date, onPress, imageUrl }) => {
   const theme = useTheme();
+
+  const authorInitials = author ? author.slice(0, 2).toUpperCase() : 'NN';
+
   return (
-    <TouchableOpacity
+    <Card
       onPress={onPress}
-      activeOpacity={0.75}
-      style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: theme.colors.surfaceVariant }]}
+      style={[styles.card, { backgroundColor: theme.colors.surface }]}
+      elevation={2}
     >
-      <View style={styles.headerRow}>
-        <Text variant="titleMedium" style={styles.title} numberOfLines={2}>
-          {title}
+      <Card.Cover source={{ uri: imageUrl || 'https://picsum.photos/700' }} />
+
+      <Card.Title
+        title={title}
+        titleStyle={[styles.title, { color: theme.colors.onSurface }]}
+        titleNumberOfLines={2}
+        subtitle={date}
+        // ISPRAVKA: Stil za datum sada koristi theme objekat direktno ovde
+        subtitleStyle={[styles.date, { color: theme.colors.outline }]}
+        left={(props) => (
+          <Avatar.Text {...props} size={40} label={authorInitials} style={{ backgroundColor: theme.colors.primaryContainer }} color={theme.colors.onPrimaryContainer} />
+        )}
+      />
+      <Card.Content>
+        <Text variant="bodyMedium" style={{ color: theme.colors.primary, fontFamily: 'Poppins-SemiBold' }}>
+          Autor: {author}
         </Text>
-      </View>
-      <View style={styles.metaRow}>
-        <Icon source="account" size={16} color={theme.colors.primary} />
-        <Text style={[styles.meta, { color: theme.colors.primary }]} numberOfLines={1}>
-          {author}
-        </Text>
-        <Text style={[styles.dot, { color: theme.colors.outline }]}>•</Text>
-        <Text style={[styles.meta, { color: theme.colors.outline }]} numberOfLines={1}>
-          {date}
-        </Text>
-      </View>
-    </TouchableOpacity>
+      </Card.Content>
+    </Card>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    padding: 14,
+    marginBottom: 20,
     borderRadius: 16,
-    marginBottom: 14,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowRadius: 4,
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    marginBottom: 6,
+    overflow: 'hidden',
   },
   title: {
-    fontWeight: '700',
-    flex: 1,
+    fontFamily: 'Poppins-Bold',
+    fontSize: 18,
+    lineHeight: 24,
   },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 2,
-  },
-  meta: {
+  date: {
     fontSize: 12,
-    fontWeight: '600',
-  },
-  dot: {
-    fontSize: 14,
-    marginHorizontal: 2,
-  },
+    // ISPRAVKA: Uklonjena boja odavde jer 'theme' nije dostupan
+  }
 });
 
 export default PostCard;

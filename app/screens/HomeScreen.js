@@ -14,6 +14,24 @@ const HomeScreen = ({ navigation }) => {
   const theme = useTheme();
   const isFocused = useIsFocused();
 
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: 'BlogApp',
+      headerTitleStyle: { color: theme.colors.onPrimary, fontFamily: 'Freedom-10eM', fontSize: 28 },
+      headerRight: () => (
+        <View style={{ flexDirection: 'row' , alignItems: 'center', marginRight: 8 }}>
+          <IconButton
+            icon="account-circle"
+            size={28}
+            iconColor={theme.colors.onPrimary}
+            onPress={() => navigation.navigate('Profile')}
+            accessibilityLabel="Profil"
+          />
+        </View>
+      )
+    });
+  }, [navigation, theme]);
+
   const [posts, setPosts] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -62,16 +80,13 @@ const HomeScreen = ({ navigation }) => {
     loadPosts(true);
   };
 
-  const handleLogout = async () => {
-    await logout();
-  };
-
   const renderItem = ({ item }) => (
     <PostCard
       title={item.title}
       author={item.author}
       date={new Date(item.created_at).toLocaleDateString('sr-RS')}
       onPress={() => navigation.navigate('PostDetail', { postId: item.id })}
+      imageUrl={`https://picsum.photos/700?random=${item.id}`}
     />
   );
 
@@ -82,22 +97,16 @@ const HomeScreen = ({ navigation }) => {
           placeholder="Pretraži postove..."
           value={query}
           onChangeText={setQuery}
-          style={styles.search}
-          elevation={0}
-        />
-        <IconButton
-          icon="logout"
-            accessibilityLabel="Odjava"
-          onPress={handleLogout}
-          mode="contained-tonal"
-          style={styles.logoutBtn}
+          style={[styles.search, { backgroundColor: theme.colors.surface }]}
+          elevation={1}
+          iconColor={theme.colors.primary}
         />
       </View>
 
       {isLoading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" />
-          <Text style={{ marginTop: 16, color: theme.colors.outline }}>Učitavanje postova...</Text>
+          <Text style={{ marginTop: 16, color: theme.colors.outline, fontFamily: 'Poppins-SemiBold' }}>Učitavanje postova...</Text>
         </View>
       ) : error ? (
         <ErrorState message={error} onRetry={() => loadPosts()} />
@@ -138,11 +147,10 @@ const HomeScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 16, paddingTop: 8 },
-  topRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  search: { flex: 1, borderRadius: 14 },
-  logoutBtn: { margin: 0 },
-  listContent: { paddingVertical: 8 },
+  container: { flex: 1 },
+  topRow: { padding: 16, paddingBottom: 8 },
+  search: { borderRadius: 14 },
+  listContent: { paddingHorizontal: 16, paddingVertical: 8 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   fab: {
     position: 'absolute',
