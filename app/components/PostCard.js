@@ -14,14 +14,14 @@ const PostCard = ({ title, author, date, onPress, imageUrl }) => {
       style={[styles.card, { backgroundColor: theme.colors.surface }]}
       elevation={2}
     >
-      <Card.Cover source={{ uri: imageUrl || 'https://picsum.photos/700' }} />
+      {/* Prikazujemo Card.Cover samo ako postoji imageUrl */}
+      {imageUrl && <Card.Cover source={{ uri: imageUrl }} />}
 
       <Card.Title
         title={title}
         titleStyle={[styles.title, { color: theme.colors.onSurface }]}
         titleNumberOfLines={2}
         subtitle={date}
-        // ISPRAVKA: Stil za datum sada koristi theme objekat direktno ovde
         subtitleStyle={[styles.date, { color: theme.colors.outline }]}
         left={(props) => (
           <Avatar.Text {...props} size={40} label={authorInitials} style={{ backgroundColor: theme.colors.primaryContainer }} color={theme.colors.onPrimaryContainer} />
@@ -49,7 +49,6 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 12,
-    // ISPRAVKA: Uklonjena boja odavde jer 'theme' nije dostupan
   }
 });
 

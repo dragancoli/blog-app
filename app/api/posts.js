@@ -1,6 +1,7 @@
 // api/posts.js
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 const API_URL = 'http://192.168.1.7:3000/api/posts';
 
@@ -15,23 +16,43 @@ const getAllPosts = async () => {
   }
 };
 
-// Funkcija za kreiranje novog posta (trebaće nam uskoro)
-const createPost = async (title, content) => {
+// Funkcija za kreiranje novog posta (sada radi na svim platformama)
+const createPost = async (title, content, image) => {
   try {
-    // Uzimamo token iz AsyncStorage-a da bismo se autorizovali
     const token = await AsyncStorage.getItem('userToken');
     if (!token) {
       throw new Error('Korisnik nije prijavljen.');
     }
 
-    const response = await axios.post(
-      API_URL,
-      { title, content },
-      { headers: { 'x-auth-token': token } }
-    );
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('content', content);
+    
+    if (image) {
+      // Logika za razlikovanje platformi
+      if (Platform.OS === 'web') {
+        // Pristup za WEB: Pretvaranje u Blob
+        const response = await fetch(image.uri);
+        const blob = await response.blob();
+        const filename = image.uri.split('/').pop();
+        formData.append('image', blob, filename);
+      } else {
+        // Pristup za MOBILNE telefone: Korišćenje { uri, name, type } objekta
+        const filename = image.uri.split('/').pop();
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : `image`;
+        formData.append('image', { uri: image.uri, name: filename, type });
+      }
+    }
+
+    const response = await axios.post(API_URL, formData, {
+      headers: {
+        'x-auth-token': token,
+      },
+    });
     return response.data;
   } catch (error) {
-    console.error('Greška pri kreiranju posta:', error.response.data);
+    console.error('Greška pri kreiranju posta:', error.response?.data || error.message);
     throw error;
   }
 };
@@ -46,14 +67,35 @@ const getPostById = async (postId) => {
   }
 };
 
-const updatePost = async (postId, title, content) => {
+// Ažurirana funkcija za update posta (sada radi na svim platformama)
+const updatePost = async (postId, title, content, image) => {
   try {
     const token = await AsyncStorage.getItem('userToken');
     if (!token) throw new Error('Nema tokena za autorizaciju.');
-    const response = await axios.put(
-      `${API_URL}/${postId}`,
-      { title, content },
-      { headers: { 'x-auth-token': token } }
+
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('content', content);
+
+    if (image) {
+      if (Platform.OS === 'web') {
+        const response = await fetch(image.uri);
+        const blob = await response.blob();
+        const filename = image.uri.split('/').pop();
+        formData.append('image', blob, filename);
+      } else {
+        const filename = image.uri.split('/').pop();
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : `image`;
+        formData.append('image', { uri: image.uri, name: filename, type });
+      }
+    }
+    
+    const response = await axios.put(`${API_URL}/${postId}`, formData, {
+        headers: {
+          'x-auth-token': token,
+        },
+      }
     );
     return response.data;
   } catch (error) {
@@ -77,4 +119,4 @@ const deletePost = async (postId) => {
   }
 };
 
-export { getAllPosts, createPost , getPostById, deletePost, updatePost };
+export { getAllPosts, createPost, getPostById, deletePost, updatePost };

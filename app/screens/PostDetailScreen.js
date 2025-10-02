@@ -34,10 +34,11 @@ const PostDetailScreen = ({ route, navigation }) => {
   }, [postId]);
 
   useEffect(() => {
-    if (isFocused) fetchPost();
+    if (isFocused) {
+        fetchPost();
+    }
   }, [isFocused, fetchPost]);
 
-  // ISPRAVKA: Definicije funkcija su dodate ovde
   const confirmDelete = () => {
     const doDelete = async () => {
       try {
@@ -75,7 +76,7 @@ const PostDetailScreen = ({ route, navigation }) => {
           <View style={{ flexDirection: 'row', marginRight: 8 }}>
             <Button
               mode="text"
-              onPress={goEdit} // Sada je ova funkcija definisana
+              onPress={goEdit}
               textColor={theme.colors.onPrimary}
               icon="pencil"
             >
@@ -83,7 +84,7 @@ const PostDetailScreen = ({ route, navigation }) => {
             </Button>
             <Button
               mode="text"
-              onPress={confirmDelete} // I ova funkcija je definisana
+              onPress={confirmDelete}
               textColor={theme.colors.onPrimary}
               icon="delete"
             >
@@ -102,7 +103,9 @@ const PostDetailScreen = ({ route, navigation }) => {
 
     return (
       <View>
-        <Card.Cover source={{ uri: `https://picsum.photos/700?random=${post.id}` }} style={styles.coverImage} />
+        {/* Prikazujemo naslovnu sliku samo ako postoji post.image_url */}
+        {post.image_url && <Card.Cover source={{ uri: post.image_url }} style={styles.coverImage} />}
+
         <View style={styles.contentContainer}>
           <Text
             variant="headlineMedium"

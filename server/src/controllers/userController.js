@@ -61,7 +61,7 @@ exports.updateMe = async (req, res) => {
   }
 };
 
-// (opciono) Postovi korisnika
+// Postovi korisnika
 exports.getPostsForUser = async (req, res) => {
   try {
     const rows = await db.query(

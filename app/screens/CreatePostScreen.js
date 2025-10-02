@@ -1,8 +1,9 @@
 // screens/CreatePostScreen.js
 import React, { useState } from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, KeyboardAvoidingView, Platform, Image, ScrollView } from 'react-native';
 import { TextInput, Button, Text, HelperText, useTheme, Snackbar } from 'react-native-paper';
 import { createPost } from '../api/posts';
+import * as ImagePicker from 'expo-image-picker';
 
 const MAX_TITLE = 120;
 const MAX_CONTENT = 5000;
@@ -11,6 +12,7 @@ const CreatePostScreen = ({ navigation }) => {
   const theme = useTheme();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [image, setImage] = useState(null);
   const [touched, setTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [snackbar, setSnackbar] = useState({ visible: false, msg: '' });
@@ -18,14 +20,33 @@ const CreatePostScreen = ({ navigation }) => {
   const titleError = touched && (!title.trim() || title.length > MAX_TITLE);
   const contentError = touched && (!content.trim() || content.length > MAX_CONTENT);
 
+  const pickImage = async () => {
+    // Traženje dozvole za pristup galeriji
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      alert("Potrebna je dozvola za pristup galeriji!");
+      return;
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0]);
+    }
+  };
+
   const handleSubmit = async () => {
     setTouched(true);
     if (titleError || contentError) return;
     setSubmitting(true);
     try {
-      await createPost(title.trim(), content.trim());
-      setSnackbar({ visible: true, msg: 'Post kreiran!' });
-      setTimeout(() => navigation.goBack(), 650);
+      await createPost(title.trim(), content.trim(), image);
+      navigation.goBack(); 
     } catch (e) {
       setSnackbar({ visible: true, msg: 'Greška pri kreiranju posta.' });
     } finally {
@@ -35,11 +56,23 @@ const CreatePostScreen = ({ navigation }) => {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.flex, { backgroundColor: theme.colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.container}>
         <Text variant="headlineSmall" style={styles.heading}>Novi post</Text>
+
+        <Button
+          icon="camera"
+          mode="outlined"
+          onPress={pickImage}
+          style={styles.imagePickerButton}
+        >
+          {image ? 'Promeni sliku' : 'Dodaj naslovnu sliku'}
+        </Button>
+
+        {image && <Image source={{ uri: image.uri }} style={styles.imagePreview} />}
+        
         <TextInput
           label="Naslov"
           value={title}
@@ -60,7 +93,7 @@ const CreatePostScreen = ({ navigation }) => {
         <TextInput
           label="Sadržaj"
           value={content}
-            onChangeText={setContent}
+          onChangeText={setContent}
           mode="outlined"
           style={[styles.input, styles.textArea]}
           multiline
@@ -85,7 +118,7 @@ const CreatePostScreen = ({ navigation }) => {
         >
           {submitting ? 'Kreiranje...' : 'Objavi'}
         </Button>
-      </View>
+      </ScrollView>
 
       <Snackbar
         visible={snackbar.visible}
@@ -100,8 +133,19 @@ const CreatePostScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  container: { flex: 1, padding: 18 },
-  heading: { fontWeight: '700', marginBottom: 12, fontFamily: 'Poppins-Bold' },
+  container: { flexGrow: 1, padding: 18 },
+  heading: { fontWeight: '700', marginBottom: 16, fontFamily: 'Poppins-Bold' },
+  imagePickerButton: {
+    marginBottom: 16,
+    borderStyle: 'dashed',
+  },
+  imagePreview: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+    marginBottom: 16,
+    backgroundColor: '#eee',
+  },
   input: { marginBottom: 4 },
   textArea: { minHeight: 160 },
   helperRow: { marginBottom: 4 },

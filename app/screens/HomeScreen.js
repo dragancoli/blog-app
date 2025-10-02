@@ -86,7 +86,7 @@ const HomeScreen = ({ navigation }) => {
       author={item.author}
       date={new Date(item.created_at).toLocaleDateString('sr-RS')}
       onPress={() => navigation.navigate('PostDetail', { postId: item.id })}
-      imageUrl={`https://picsum.photos/700?random=${item.id}`}
+      imageUrl={item.image_url}
     />
   );
 
