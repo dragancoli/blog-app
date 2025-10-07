@@ -174,32 +174,34 @@ const CommentsSection = ({ postId, userToken }) => {
         Komentari
       </Text>
 
-      {loading ? (
-        <View style={[styles.center]}>
-          <ActivityIndicator />
-          <Text style={{ marginTop: 10, color: theme.colors.outline }}>Učitavanje...</Text>
-        </View>
-      ) : error ? (
-        <View style={styles.center}>
-          <Text style={{ color: theme.colors.error }}>{error}</Text>
-          <Button mode="contained-tonal" style={{ marginTop: 10 }} onPress={load}>
-            Pokušaj ponovo
-          </Button>
-        </View>
-      ) : comments.length === 0 ? (
-        <View style={styles.center}>
-          <Text style={{ color: theme.colors.outline }}>Još uvek nema komentara.</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={comments}
-          keyExtractor={keyExtractor}
-          renderItem={renderItem}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          contentContainerStyle={{ paddingBottom: 12 }}
-        />
-      )}
+      <View style={{ flex: 1 }}>
+        {loading ? (
+          <View style={[styles.center]}>
+            <ActivityIndicator />
+            <Text style={{ marginTop: 10, color: theme.colors.outline }}>Učitavanje...</Text>
+          </View>
+        ) : error ? (
+          <View style={styles.center}>
+            <Text style={{ color: theme.colors.error }}>{error}</Text>
+            <Button mode="contained-tonal" style={{ marginTop: 10 }} onPress={load}>
+              Pokušaj ponovo
+            </Button>
+          </View>
+        ) : comments.length === 0 ? (
+          <View style={styles.center}>
+            <Text style={{ color: theme.colors.outline }}>Još uvek nema komentara.</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={comments}
+            keyExtractor={keyExtractor}
+            renderItem={renderItem}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            contentContainerStyle={{ paddingBottom: 12 }}
+          />
+        )}
+      </View>
 
       <View style={[styles.formContainer, { backgroundColor: theme.colors.surface }]}>
         <Text variant="bodyMedium" style={{ fontWeight: "600", marginBottom: 16, color: theme.colors.onSurface }}>
@@ -239,7 +241,7 @@ const CommentsSection = ({ postId, userToken }) => {
 };
 
 const styles = StyleSheet.create({
-  wrapper: { marginTop: 10, padding: 10 },
+  wrapper: { flex: 1, marginTop: 10, padding: 10 },
   center: { alignItems: "center", paddingVertical: 20 },
   commentContainer: {
     borderWidth: 1,

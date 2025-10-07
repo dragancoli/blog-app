@@ -1,12 +1,13 @@
 // screens/PostDetailScreen.js
 import React, { useState, useEffect, useLayoutEffect, useContext, useCallback } from 'react';
-import { View, StyleSheet, Alert, Platform, FlatList } from 'react-native';
+import { View, StyleSheet, Alert, Platform, FlatList, KeyboardAvoidingView } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { getPostById, deletePost } from '../api/posts';
 import { AuthContext } from '../context/AuthContext';
 import { jwtDecode } from 'jwt-decode';
 import { Button, Text, ActivityIndicator, useTheme, Card, Avatar, Divider } from 'react-native-paper';
 import CommentsSection from '../components/CommentsSection';
+import { TouchableOpacity } from 'react-native';
 
 const PostDetailScreen = ({ route, navigation }) => {
   const { postId } = route.params;
@@ -161,17 +162,24 @@ const PostDetailScreen = ({ route, navigation }) => {
   }
 
   return (
-    <FlatList
-      data={[1]}
-      renderItem={null}
-      ListHeaderComponent={renderHeader}
-      ListFooterComponent={renderComments}
-      keyExtractor={() => 'post-detail'}
-      style={{ backgroundColor: theme.colors.background }}
-      contentContainerStyle={{ flexGrow: 1 }}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    />
+    <KeyboardAvoidingView 
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+    >
+      <FlatList
+        data={[1]}
+        renderItem={null}
+        ListHeaderComponent={renderHeader}
+        keyExtractor={() => 'post-detail'}
+        style={{ backgroundColor: theme.colors.background }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      />
+      <View style={{ flex: 1 }}>
+        <CommentsSection postId={postId} userToken={userToken} />
+      </View>
+    </KeyboardAvoidingView>
   );
 };
 
